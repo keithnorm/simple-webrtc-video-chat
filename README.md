@@ -8,7 +8,7 @@ This is a very simple video chat using WebRTC. I worked on it because I couldn't
     git clone https://github.com/keithnorm/simple-webrtc-video-chat.git
     cd simple-webrtc-vide-chat
     npm install
-    coffee app.coffee
+    ./node_modules/coffee-script/bin/coffee app.coffee
 
 Then open up two browser windows pointed to `localhost:3002/room_name`. 
 
