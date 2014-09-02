@@ -81,6 +81,10 @@ function broadcast() {
     // initCall is set in views/index and is based on if there is another person in the room to connect to
     if(initCall)
       start();
+  }, function (error) {
+    try {
+      console.error(error);
+    } catch (e) {}
   });
 }
 
