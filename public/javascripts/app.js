@@ -1,4 +1,4 @@
-// the socket handles sending messages between peer connections while they are in the 
+// the socket handles sending messages between peer connections while they are in the
 // process of connecting
 var socket = new WebSocket('ws://' + window.location.host + window.location.pathname);
 
@@ -9,17 +9,20 @@ socket.onmessage = function(message) {
     case 'assigned_id' :
       socket.id = msg.id;
       break;
-    case 'received_offer' : 
+    case 'received_offer' :
       console.log('received offer', msg.data);
-      pc.setRemoteDescription(new RTCSessionDescription(msg.data));
-      pc.createAnswer(function(description) {
-        console.log('sending answer');
-        pc.setLocalDescription(description); 
-        socket.send(JSON.stringify({
-          type: 'received_answer', 
-          data: description
-        }));
-      }, null, mediaConstraints);
+      pc.setRemoteDescription(new RTCSessionDescription(msg.data)).then(function() {
+        console.log('create answer');
+        pc.createAnswer().then(function(description) {
+          console.log('sending answer');
+          pc.setLocalDescription(description).then(function() {
+            socket.send(JSON.stringify({
+              type: 'received_answer',
+              data: description
+            }));
+          })
+        });
+      });
       break;
     case 'received_answer' :
       console.log('received answer');
@@ -30,7 +33,7 @@ socket.onmessage = function(message) {
       break;
 
     case 'received_candidate' :
-      console.log('received candidate');
+      console.log('received candidate', msg.data);
       var candidate = new RTCIceCandidate({
         sdpMLineIndex: msg.data.label,
         candidate: msg.data.candidate
@@ -47,7 +50,7 @@ var pc = new webkitRTCPeerConnection(configuration);
 var connected = false;
 var mediaConstraints = {
   'mandatory': {
-    'OfferToReceiveAudio':true, 
+    'OfferToReceiveAudio':true,
     'OfferToReceiveVideo':true
   }
 };
@@ -90,13 +93,14 @@ function broadcast() {
 
 function start() {
   // this initializes the peer connection
-  pc.createOffer(function(description) {
-    pc.setLocalDescription(description);
-    socket.send(JSON.stringify({
-      type: 'received_offer',
-      data: description
-    }));
-  }, null, mediaConstraints);
+  pc.createOffer().then(function(description) {
+    pc.setLocalDescription(description).then(function() {
+      socket.send(JSON.stringify({
+        type: 'received_offer',
+        data: description
+      }));
+    });
+  });
 }
 
 window.onload = function() {
